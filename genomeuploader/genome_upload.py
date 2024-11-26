@@ -409,10 +409,14 @@ def extract_ENA_info(genomeInfo, uploadDir, webin, password):
                             latitude = '-' + location.split('S')[0].strip()
                             longitude = location.split('S')[1].strip()
 
-                        if 'W' in longitude:
-                            longitude = '-' + longitude.split('W')[0].strip()
-                        elif longitude.endswith('E'):
-                            longitude = longitude.split('E')[0].strip()
+                        try:
+                            if 'W' in longitude:
+                                longitude = '-' + longitude.split('W')[0].strip()
+                            elif longitude.endswith('E'):
+                                longitude = longitude.split('E')[0].strip()
+                        except TypeError:
+                            # NoneType is not iterable
+                            pass
 
                         if latitude:
                             latitude = "{:.{}f}".format(round(float(latitude), GEOGRAPHY_DIGIT_COORDS), GEOGRAPHY_DIGIT_COORDS)
@@ -429,7 +433,8 @@ def extract_ENA_info(genomeInfo, uploadDir, webin, password):
                             country = "not provided"
                         
                         collectionDate = sampleInfo["collection_date"]
-                        if collectionDate == "" or collectionDate == "missing":
+                        if collectionDate == "" or collectionDate == "missing" or collectionDate == "Missing" \
+                            or collectionDate == "not applicable" or collectionDate == "Not applicable":
                             collectionDate = "not provided"
 
                         tempDict[runAccession] = {
@@ -492,12 +497,12 @@ def combine_ENA_info(genomeInfo, ENADict):
             latitude = latitList[0]
             if multipleElementSet(latitList):
                 latitude = "not provided"
-            genomeInfo[g]["latitude"] = str(round(float(latitude), GEOGRAPHY_DIGIT_COORDS))
+            genomeInfo[g]["latitude"] = str(round(float(latitude), GEOGRAPHY_DIGIT_COORDS)) if latitude != "not provided" else latitude
 
             longitude = longList[0]
             if multipleElementSet(longList):
                 longitude = "not provided"
-            genomeInfo[g]["longitude"] = str(round(float(longitude), GEOGRAPHY_DIGIT_COORDS))
+            genomeInfo[g]["longitude"] = str(round(float(longitude), GEOGRAPHY_DIGIT_COORDS)) if longitude != "not provided" else longitude
 
             samples = samplesList[0]
             if multipleElementSet(samplesList):
